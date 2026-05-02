@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { getItem, setItem, KEYS } from '../../storage';
+import { saveSession } from '../../api/brainspark';
 import GameHeader from '../../components/GameHeader';
 import ResultScreen from '../../components/ResultScreen';
 import { colors, spacing, radius, shadow } from '../../theme';
@@ -90,14 +91,16 @@ export default function AttentionSpot({ navigation }) {
   };
 
   const saveResult = async () => {
+    const win = correct >= config.rounds * 0.6;
     const stats = (await getItem(KEYS.GAME_ATTENTION)) || {};
     await setItem(KEYS.GAME_ATTENTION, {
       gamesPlayed: (stats.gamesPlayed || 0) + 1,
-      wins: (stats.wins || 0) + (correct >= config.rounds * 0.6 ? 1 : 0),
+      wins: (stats.wins || 0) + (win ? 1 : 0),
       bestScore: Math.max(stats.bestScore || 0, score),
       totalScore: (stats.totalScore || 0) + score,
       lastPlayed: new Date().toISOString(),
     });
+    saveSession({ gameId: 'attention', difficulty, score, correctAnswers: correct, totalRounds: config.rounds, durationSeconds: totalTime, win });
   };
 
   const restart = async () => {

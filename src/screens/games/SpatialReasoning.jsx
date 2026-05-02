@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { getItem, setItem, KEYS } from '../../storage';
+import { saveSession } from '../../api/brainspark';
 import GameHeader from '../../components/GameHeader';
 import ResultScreen from '../../components/ResultScreen';
 import { colors, spacing, radius, shadow } from '../../theme';
@@ -107,14 +108,16 @@ export default function SpatialReasoning({ navigation }) {
   };
 
   const saveResult = async () => {
+    const win = correct >= config.rounds * 0.5;
     const stats = (await getItem(KEYS.GAME_SPATIAL)) || {};
     await setItem(KEYS.GAME_SPATIAL, {
       gamesPlayed: (stats.gamesPlayed || 0) + 1,
-      wins: (stats.wins || 0) + (correct >= config.rounds * 0.5 ? 1 : 0),
+      wins: (stats.wins || 0) + (win ? 1 : 0),
       bestScore: Math.max(stats.bestScore || 0, score),
       totalScore: (stats.totalScore || 0) + score,
       lastPlayed: new Date().toISOString(),
     });
+    saveSession({ gameId: 'spatial', difficulty, score, correctAnswers: correct, totalRounds: config.rounds, durationSeconds: totalTime, win });
   };
 
   const restart = async () => {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
 import { getItem, setItem, KEYS } from '../../storage';
+import { saveSession } from '../../api/brainspark';
 import GameHeader from '../../components/GameHeader';
 import ResultScreen from '../../components/ResultScreen';
 import { colors, spacing, radius, shadow } from '../../theme';
@@ -88,14 +89,17 @@ export default function LogicSequence({ navigation }) {
 
   const saveResult = async (lastCorrect) => {
     const finalCorrect = correct + (lastCorrect ? 1 : 0);
+    const finalScore = score + (lastCorrect ? 15 : 0);
+    const win = finalCorrect >= config.rounds * 0.6;
     const stats = (await getItem(KEYS.GAME_LOGIC)) || {};
     await setItem(KEYS.GAME_LOGIC, {
-      gamesPlayed: (stats.gamesPlayed||0)+1,
-      wins: (stats.wins||0) + (finalCorrect >= config.rounds*0.6 ? 1 : 0),
-      bestScore: Math.max(stats.bestScore||0, score+(lastCorrect?15:0)),
-      totalScore: (stats.totalScore||0)+score+(lastCorrect?15:0),
+      gamesPlayed: (stats.gamesPlayed || 0) + 1,
+      wins: (stats.wins || 0) + (win ? 1 : 0),
+      bestScore: Math.max(stats.bestScore || 0, finalScore),
+      totalScore: (stats.totalScore || 0) + finalScore,
       lastPlayed: new Date().toISOString(),
     });
+    saveSession({ gameId: 'logic', difficulty, score: finalScore, correctAnswers: finalCorrect, totalRounds: config.rounds, durationSeconds: timer, win });
   };
 
   const restart = async () => {

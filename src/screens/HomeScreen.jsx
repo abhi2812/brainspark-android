@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView,
 } from 'react-native';
 import { setString } from '../storage';
+import { registerDevice } from '../api/brainspark';
 import { AGE_GROUPS, DOMAINS } from '../constants';
 import { colors, spacing, radius, shadow } from '../theme';
 
@@ -21,12 +22,14 @@ export default function HomeScreen({ navigation }) {
   const handleStart = async () => {
     if (!selectedAge) return;
     await setString('bs_age_group', selectedAge);
+    registerDevice(selectedAge); // fire-and-forget; queued if offline
     navigation.navigate('Assessment');
   };
 
   const handleSkipToGames = async () => {
     if (!selectedAge) return;
     await setString('bs_age_group', selectedAge);
+    registerDevice(selectedAge);
     navigation.navigate('Games');
   };
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Animated } from 'react-native';
-import { getItem, setItem, updateStreak, KEYS } from '../../storage';
+import { getItem, setItem, KEYS } from '../../storage';
+import { saveSession } from '../../api/brainspark';
 import GameHeader from '../../components/GameHeader';
 import ResultScreen from '../../components/ResultScreen';
 import { colors, spacing, radius, shadow } from '../../theme';
@@ -101,8 +102,8 @@ export default function MemoryMatch({ navigation }) {
   };
 
   const saveResult = async () => {
-    const stats = (await getItem(KEYS.GAME_MEMORY)) || {};
     const score = getScore();
+    const stats = (await getItem(KEYS.GAME_MEMORY)) || {};
     await setItem(KEYS.GAME_MEMORY, {
       gamesPlayed: (stats.gamesPlayed || 0) + 1,
       wins: (stats.wins || 0) + 1,
@@ -113,7 +114,7 @@ export default function MemoryMatch({ navigation }) {
       level: Math.min((stats.level || 1) + (score > 70 ? 1 : 0), 3),
       lastPlayed: new Date().toISOString(),
     });
-    await updateStreak();
+    saveSession({ gameId: 'memory', difficulty, score, correctAnswers: matches, totalRounds: totalPairs, durationSeconds: timer, win: true });
   };
 
   const handleCardPress = useCallback((idx) => {

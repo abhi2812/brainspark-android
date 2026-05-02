@@ -3,7 +3,8 @@ import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, Alert,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { getItem, clearAll, KEYS } from '../storage';
+import { clearAll, getString, KEYS } from '../storage';
+import { getProfile } from '../api/brainspark';
 import { DOMAINS } from '../constants';
 import RadarChart from '../components/RadarChart';
 import { colors, spacing, radius, shadow } from '../theme';
@@ -22,22 +23,38 @@ export default function DashboardScreen({ navigation }) {
   );
 
   const loadData = async () => {
-    const ageGroup = await getItem(KEYS.AGE_GROUP) || 'middle';
-    const ageStr = ageGroup === 'young' ? '3-5 yrs' : ageGroup === 'middle' ? '6-8 yrs' : '9-12 yrs';
-    setAgeLabel(ageStr);
+    const ageGroup = (await getString(KEYS.AGE_GROUP)) || 'middle';
+    setAgeLabel(ageGroup === 'young' ? '3-5 yrs' : ageGroup === 'middle' ? '6-8 yrs' : '9-12 yrs');
 
-    const p = (await getItem(KEYS.COGNITIVE_PROFILE)) || {};
+    const data = await getProfile();
+    if (!data) return;
+
+    const cp = data.cognitiveProfile || {};
+    const p = {
+      memory: cp.memoryScore || 0,
+      attention: cp.attentionScore || 0,
+      pattern: cp.patternScore || 0,
+      spatial: cp.spatialScore || 0,
+      logic: cp.logicScore || 0,
+    };
     setProfile(p);
 
-    const s = (await getItem(KEYS.STREAK)) || {};
-    setStreak(s);
+    setStreak({ count: data.streakInfo?.currentStreak || 0, best: data.streakInfo?.bestStreak || 0 });
 
-    const stats = await Promise.all(
-      DOMAINS.map(async d => {
-        const gs = (await getItem(d.storageKey)) || {};
-        return { ...d, stats: gs };
-      })
-    );
+    const apiGs = data.gameStats || {};
+    const stats = DOMAINS.map(d => {
+      const s = apiGs[d.key] || {};
+      return {
+        ...d,
+        stats: {
+          gamesPlayed: s.played || 0,
+          wins: s.wins || 0,
+          bestScore: s.bestScore || 0,
+          totalScore: s.sumScore || 0,
+          lastPlayed: s.lastPlayed || null,
+        },
+      };
+    });
     setGameStats(stats);
 
     const scores = {};
@@ -45,9 +62,7 @@ export default function DashboardScreen({ navigation }) {
       const assessScore = p[d.key] || 0;
       const gs = d.stats;
       const winRate = gs.gamesPlayed ? Math.round(((gs.wins || 0) / gs.gamesPlayed) * 100) : 0;
-      scores[d.key] = gs.gamesPlayed
-        ? Math.round(assessScore * 0.4 + winRate * 0.6)
-        : assessScore;
+      scores[d.key] = gs.gamesPlayed ? Math.round(assessScore * 0.4 + winRate * 0.6) : assessScore;
     });
     setRadarScores(scores);
   };

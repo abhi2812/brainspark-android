@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, Animated,
 } from 'react-native';
-import { getString, setItem, setString, KEYS } from '../storage';
+import { getString, KEYS } from '../storage';
+import { saveAssessment } from '../api/brainspark';
 import { DOMAINS } from '../constants';
 import { colors, spacing, radius, shadow } from '../theme';
 
@@ -398,8 +399,13 @@ export default function AssessmentScreen({ navigation }) {
     if (isLastRound && isLastDomain) {
       const p = {};
       DOMAINS.forEach(d => { p[d.key] = Math.round((newScores[d.key] / roundsPerDomain) * 100); });
-      await setItem(KEYS.COGNITIVE_PROFILE, p);
-      await setString(KEYS.ASSESSMENT_DATE, new Date().toISOString());
+      saveAssessment({
+        memoryScore: p.memory,
+        attentionScore: p.attention,
+        patternScore: p.pattern,
+        spatialScore: p.spatial,
+        logicScore: p.logic,
+      }); // fire-and-forget; queued if offline
       setProfile(p);
       setPhase('result');
     } else if (isLastRound) {

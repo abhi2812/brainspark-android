@@ -3,7 +3,7 @@ import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { getItem, KEYS } from '../storage';
+import { getProfile } from '../api/brainspark';
 import { GAMES } from '../constants';
 import { colors, spacing, radius, shadow } from '../theme';
 
@@ -20,21 +20,21 @@ export default function GamesScreen({ navigation }) {
   );
 
   const loadData = async () => {
-    const profile = await getItem(KEYS.COGNITIVE_PROFILE);
-    setHasProfile(!!(profile && Object.keys(profile).length > 0));
+    const data = await getProfile();
+    if (!data) return;
 
-    const streakData = await getItem(KEYS.STREAK);
-    setStreak(streakData?.count || 0);
+    const cp = data.cognitiveProfile || {};
+    setHasProfile(Object.values(cp).some(v => v > 0));
+    setStreak(data.streakInfo?.currentStreak || 0);
+    setTotalGames(data.totalGames || 0);
 
     const stats = {};
-    let total = 0;
+    const gs = data.gameStats || {};
     for (const g of GAMES) {
-      const s = await getItem(g.storageKey) || {};
-      stats[g.id] = s;
-      total += s.gamesPlayed || 0;
+      const s = gs[g.id] || {};
+      stats[g.id] = { gamesPlayed: s.played || 0, bestScore: s.bestScore || 0 };
     }
     setGameStats(stats);
-    setTotalGames(total);
   };
 
   return (
