@@ -1,10 +1,11 @@
 import 'react-native-gesture-handler';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text } from 'react-native';
+import { Text, AppState } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { flushSyncQueue } from './src/api/brainspark';
 
 import HomeScreen from './src/screens/HomeScreen';
 import AssessmentScreen from './src/screens/AssessmentScreen';
@@ -81,6 +82,15 @@ function MainTabs() {
 }
 
 export default function App() {
+  useEffect(() => {
+    // Flush any queued offline actions whenever the app comes to foreground
+    flushSyncQueue();
+    const sub = AppState.addEventListener('change', state => {
+      if (state === 'active') flushSyncQueue();
+    });
+    return () => sub.remove();
+  }, []);
+
   return (
     <NavigationContainer>
       <StatusBar style="dark" />
