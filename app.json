@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "BrainSpark",
-    "slug": "brainspark-android",
+    "name": "Timmble",
+    "slug": "timmble",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -26,6 +26,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "fa620b52-6ba2-425e-86d4-5d723f19e10b"
+      }
+    },
+    "owner": "abhi2812"
   }
 }

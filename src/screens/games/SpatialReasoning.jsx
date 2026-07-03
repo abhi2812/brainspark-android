@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { getItem, setItem, KEYS } from '../../storage';
 import { saveSession } from '../../api/brainspark';
 import GameHeader from '../../components/GameHeader';
 import ResultScreen from '../../components/ResultScreen';
+import { GAMES } from '../../constants';
 import { colors, spacing, radius, shadow } from '../../theme';
 
 const LEVEL_CONFIG = {
@@ -19,6 +21,20 @@ function mirrorH(cells, size) {
   return cells.map(i => { const r = Math.floor(i / size), c = i % size; return r * size + (size - 1 - c); });
 }
 
+function cellsMatch(a, b) {
+  return [...a].sort((x, y) => x - y).join(',') === [...b].sort((x, y) => x - y).join(',');
+}
+
+function makeWrongOption(total, filledCount, ...exclude) {
+  let arr;
+  do {
+    const s = new Set();
+    while (s.size < filledCount) s.add(Math.floor(Math.random() * total));
+    arr = Array.from(s);
+  } while (exclude.some(e => cellsMatch(arr, e)));
+  return arr;
+}
+
 function generatePuzzle(difficulty) {
   const { gridSize, filledCount } = LEVEL_CONFIG[difficulty];
   const total = gridSize * gridSize;
@@ -32,11 +48,9 @@ function generatePuzzle(difficulty) {
   ];
   const transform = transforms[Math.floor(Math.random() * transforms.length)];
   const correctCells = transform.fn(original);
-  const wrong1 = new Set();
-  while (wrong1.size < filledCount) wrong1.add(Math.floor(Math.random() * total));
-  const wrong2 = new Set();
-  while (wrong2.size < filledCount) wrong2.add(Math.floor(Math.random() * total));
-  const options = [{ cells: correctCells, correct: true }, { cells: Array.from(wrong1), correct: false }, { cells: Array.from(wrong2), correct: false }];
+  const wrong1 = makeWrongOption(total, filledCount, correctCells);
+  const wrong2 = makeWrongOption(total, filledCount, correctCells, wrong1);
+  const options = [{ cells: correctCells, correct: true }, { cells: wrong1, correct: false }, { cells: wrong2, correct: false }];
   for (let i = options.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [options[i], options[j]] = [options[j], options[i]]; }
   return { original, options, gridSize, transformName: transform.name };
 }
@@ -95,29 +109,32 @@ export default function SpatialReasoning({ navigation }) {
     if (selected !== null || gameOver) return;
     setSelected(idx);
     const isCorrect = puzzle.options[idx].correct;
-    if (isCorrect) { const bonus = Math.round((timeLeft / config.timeLimit) * 15); setScore(s => s + 10 + bonus); setCorrect(c => c + 1); }
-    setTimeout(() => handleNext(isCorrect), 800);
+    let lastScore = 0;
+    if (isCorrect) { const bonus = Math.round((timeLeft / config.timeLimit) * 15); lastScore = 10 + bonus; setScore(s => s + lastScore); setCorrect(c => c + 1); }
+    setTimeout(() => handleNext(isCorrect, lastScore), 800);
   };
 
-  const handleNext = () => {
-    if (round + 1 >= config.rounds) { setGameOver(true); saveResult(); return; }
+  const handleNext = (lastCorrect, lastScore = 0) => {
+    if (round + 1 >= config.rounds) { setGameOver(true); saveResult(lastCorrect, lastScore); return; }
     setRound(r => r + 1);
     setPuzzle(generatePuzzle(difficulty));
     setSelected(null);
     setTimeLeft(config.timeLimit);
   };
 
-  const saveResult = async () => {
-    const win = correct >= config.rounds * 0.5;
+  const saveResult = async (lastCorrect, lastScore = 0) => {
+    const finalCorrect = correct + (lastCorrect ? 1 : 0);
+    const finalScore = score + lastScore;
+    const win = finalCorrect >= config.rounds * 0.5;
     const stats = (await getItem(KEYS.GAME_SPATIAL)) || {};
     await setItem(KEYS.GAME_SPATIAL, {
       gamesPlayed: (stats.gamesPlayed || 0) + 1,
       wins: (stats.wins || 0) + (win ? 1 : 0),
-      bestScore: Math.max(stats.bestScore || 0, score),
-      totalScore: (stats.totalScore || 0) + score,
+      bestScore: Math.max(stats.bestScore || 0, finalScore),
+      totalScore: (stats.totalScore || 0) + finalScore,
       lastPlayed: new Date().toISOString(),
     });
-    saveSession({ gameId: 'spatial', difficulty, score, correctAnswers: correct, totalRounds: config.rounds, durationSeconds: totalTime, win });
+    saveSession({ gameId: 'spatial', difficulty, score: finalScore, correctAnswers: finalCorrect, totalRounds: config.rounds, durationSeconds: totalTime, win });
   };
 
   const restart = async () => {
@@ -140,6 +157,7 @@ export default function SpatialReasoning({ navigation }) {
         stars={stars}
         stats={[{ label: 'Score', value: score }, { label: 'Correct', value: `${correct}/${config.rounds}` }, { label: 'Time', value: `${totalTime}s` }]}
         onPlayAgain={restart}
+        onNextGame={() => { const g = GAMES[Math.floor(Math.random() * GAMES.length)]; navigation.replace('Game', { gameId: g.id }); }}
         onBack={() => navigation.goBack()}
       />
     );

@@ -27,7 +27,7 @@ export const GAMES = [
     name: 'Spot the Odd',
     icon: '👁️',
     domain: 'Attention',
-    desc: 'Find the different item in a grid. Sharpen your focus!',
+    desc: 'Find the different item in a grid. Focus up!',
     color: '#EC4899',
     storageKey: 'bs_game_attention',
   },

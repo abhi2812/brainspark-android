@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { getItem, setItem, KEYS } from '../../storage';
 import { saveSession } from '../../api/brainspark';
 import GameHeader from '../../components/GameHeader';
 import ResultScreen from '../../components/ResultScreen';
+import { GAMES } from '../../constants';
 import { colors, spacing, radius, shadow } from '../../theme';
 
 const EMOJI_SETS = {
@@ -165,6 +167,7 @@ export default function MemoryMatch({ navigation }) {
         stars={stars}
         stats={[{ label: 'Score', value: score }, { label: 'Moves', value: moves }, { label: 'Time', value: formatTime(timer) }]}
         onPlayAgain={restart}
+        onNextGame={() => { const g = GAMES[Math.floor(Math.random() * GAMES.length)]; navigation.replace('Game', { gameId: g.id }); }}
         onBack={() => navigation.goBack()}
       />
     );

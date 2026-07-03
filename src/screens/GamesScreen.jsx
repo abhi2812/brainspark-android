@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet,  } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { getProfile } from '../api/brainspark';
 import { GAMES } from '../constants';
@@ -25,14 +24,14 @@ export default function GamesScreen({ navigation }) {
 
     const cp = data.cognitiveProfile || {};
     setHasProfile(Object.values(cp).some(v => v > 0));
-    setStreak(data.streakInfo?.currentStreak || 0);
+    setStreak(data.streak?.current || 0);
     setTotalGames(data.totalGames || 0);
 
     const stats = {};
     const gs = data.gameStats || {};
     for (const g of GAMES) {
       const s = gs[g.id] || {};
-      stats[g.id] = { gamesPlayed: s.played || 0, bestScore: s.bestScore || 0 };
+      stats[g.id] = { gamesPlayed: s.gamesPlayed || 0, bestScore: s.bestScore || 0 };
     }
     setGameStats(stats);
   };
@@ -62,10 +61,10 @@ export default function GamesScreen({ navigation }) {
         {!hasProfile && (
           <View style={styles.assessPrompt}>
             <Text style={styles.assessIcon}>🎯</Text>
-            <Text style={styles.assessTitle}>Take the Brain Assessment first!</Text>
-            <Text style={styles.assessDesc}>Get a personalized cognitive profile to unlock adaptive difficulty</Text>
+            <Text style={styles.assessTitle}>Try the Warm-Up first!</Text>
+            <Text style={styles.assessDesc}>A quick warm-up personalizes the difficulty for your child</Text>
             <TouchableOpacity style={styles.assessBtn} onPress={() => navigation.navigate('Assessment')}>
-              <Text style={styles.assessBtnText}>Start Assessment (5 min)</Text>
+              <Text style={styles.assessBtnText}>Start Warm-Up</Text>
             </TouchableOpacity>
           </View>
         )}

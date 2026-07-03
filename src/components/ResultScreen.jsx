@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { colors, spacing, radius, shadow } from '../theme';
 
-export default function ResultScreen({ icon, title, stars, stats, onPlayAgain, onBack, backLabel = 'All Games' }) {
+export default function ResultScreen({ icon, title, stars, stats, onPlayAgain, onNextGame, onBack, backLabel = 'All Games' }) {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.icon}>{icon}</Text>
@@ -26,6 +26,11 @@ export default function ResultScreen({ icon, title, stars, stats, onPlayAgain, o
       <TouchableOpacity style={styles.primaryBtn} onPress={onPlayAgain}>
         <Text style={styles.primaryBtnText}>Play Again</Text>
       </TouchableOpacity>
+      {onNextGame && (
+        <TouchableOpacity style={styles.nextBtn} onPress={onNextGame}>
+          <Text style={styles.nextBtnText}>🎲 Next Game</Text>
+        </TouchableOpacity>
+      )}
       <TouchableOpacity style={styles.secondaryBtn} onPress={onBack}>
         <Text style={styles.secondaryBtnText}>{backLabel}</Text>
       </TouchableOpacity>
@@ -67,6 +72,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   primaryBtnText: { color: '#fff', fontWeight: '800', fontSize: 16 },
+  nextBtn: {
+    backgroundColor: '#F0FDF4',
+    borderRadius: radius.full,
+    borderWidth: 2,
+    borderColor: '#A7F3D0',
+    paddingVertical: 14,
+    paddingHorizontal: spacing.xl,
+    marginBottom: spacing.sm,
+    width: '100%',
+    alignItems: 'center',
+  },
+  nextBtnText: { color: colors.green, fontWeight: '800', fontSize: 16 },
   secondaryBtn: {
     backgroundColor: colors.bg,
     borderRadius: radius.full,

@@ -1,7 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Switch this to your EC2 URL in production
-export const BASE_URL = 'http://43.204.232.129:8080/api/brainspark';
+export const BASE_URL = 'https://d2wq4bog7awi65.cloudfront.net/api/brainspark';
 
 const TIMEOUT_MS = 8000;
 

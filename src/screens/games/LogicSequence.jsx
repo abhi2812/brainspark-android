@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { getItem, setItem, KEYS } from '../../storage';
 import { saveSession } from '../../api/brainspark';
 import GameHeader from '../../components/GameHeader';
 import ResultScreen from '../../components/ResultScreen';
+import { GAMES } from '../../constants';
 import { colors, spacing, radius, shadow } from '../../theme';
 
 const LEVEL_CONFIG = {
@@ -121,6 +123,7 @@ export default function LogicSequence({ navigation }) {
         stars={stars}
         stats={[{ label: 'Score', value: score }, { label: 'Correct', value: `${correct}/${config.rounds}` }, { label: 'Time', value: `${timer}s` }]}
         onPlayAgain={restart}
+        onNextGame={() => { const g = GAMES[Math.floor(Math.random() * GAMES.length)]; navigation.replace('Game', { gameId: g.id }); }}
         onBack={() => navigation.goBack()}
       />
     );

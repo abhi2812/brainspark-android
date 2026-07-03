@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, Animated,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Animated,  } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { getString, KEYS } from '../storage';
-import { saveAssessment } from '../api/brainspark';
+import { saveAssessment, invalidateProfileCache } from '../api/brainspark';
 import { DOMAINS } from '../constants';
 import { colors, spacing, radius, shadow } from '../theme';
 
@@ -285,12 +284,12 @@ function SpatialRound({ challenge, onAnswer }) {
       </View>
       <View style={styles.gridOptions}>
         {challenge.options.map((opt, i) => {
-          const isCorrect = selected !== null && opt.correct;
-          const isWrong = selected !== null && i === selected && !opt.correct;
+          const isCorrect = selected !== null && i === challenge.correctIdx;
+          const isWrong = selected !== null && i === selected && i !== challenge.correctIdx;
           return (
             <TouchableOpacity key={i} onPress={() => handleSelect(null, i)} activeOpacity={0.8}>
               <Text style={styles.optionLabel}>Option {i + 1}</Text>
-              {renderGrid(opt.cells, challenge.size, isCorrect, isWrong)}
+              {renderGrid(opt, challenge.size, isCorrect, isWrong)}
             </TouchableOpacity>
           );
         })}
@@ -406,6 +405,7 @@ export default function AssessmentScreen({ navigation }) {
         spatialScore: p.spatial,
         logicScore: p.logic,
       }); // fire-and-forget; queued if offline
+      invalidateProfileCache(); // bust cache now so Dashboard fetches fresh when user navigates there
       setProfile(p);
       setPhase('result');
     } else if (isLastRound) {
@@ -427,11 +427,11 @@ export default function AssessmentScreen({ navigation }) {
       <SafeAreaView style={styles.safe}>
         <ScrollView contentContainerStyle={styles.introContainer}>
           <Text style={styles.introIcon}>🎯</Text>
-          <Text style={styles.introTitle}>Brain Assessment</Text>
+          <Text style={styles.introTitle}>Warm-Up Challenge</Text>
           <Text style={styles.introDesc}>
             {ageGroup === 'young'
-              ? 'Fun little puzzles to see how your child thinks! Only takes 3 minutes.'
-              : `Answer quick challenges across 5 cognitive domains. Takes about ${ageGroup === 'middle' ? '4' : '5'} minutes.`}
+              ? 'Fun little puzzles to get started! Only takes 3 minutes.'
+              : `A few quick mini-games across 5 skill areas. Takes about ${ageGroup === 'middle' ? '4' : '5'} minutes.`}
           </Text>
           <View style={styles.domainList}>
             {DOMAINS.map(d => (
@@ -446,7 +446,7 @@ export default function AssessmentScreen({ navigation }) {
             style={styles.startBtn}
             onPress={() => { setChallenge(GENERATORS[DOMAINS[0].key](difficulty)); setRoundKey(k => k + 1); setPhase('playing'); }}
           >
-            <Text style={styles.startBtnText}>{ageGroup === 'young' ? "Let's Play!" : 'Start Assessment'}</Text>
+            <Text style={styles.startBtnText}>{ageGroup === 'young' ? "Let's Play!" : 'Start Warm-Up'}</Text>
           </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
@@ -461,7 +461,7 @@ export default function AssessmentScreen({ navigation }) {
       <SafeAreaView style={styles.safe}>
         <ScrollView contentContainerStyle={styles.introContainer}>
           <Text style={styles.introIcon}>🎉</Text>
-          <Text style={styles.introTitle}>{ageGroup === 'young' ? 'Great Job!' : 'Assessment Complete!'}</Text>
+          <Text style={styles.introTitle}>{ageGroup === 'young' ? 'Great Job!' : 'Warm-Up Complete!'}</Text>
           <View style={styles.resultGrid}>
             {DOMAINS.map(d => (
               <View key={d.key} style={styles.resultCard}>
@@ -475,10 +475,10 @@ export default function AssessmentScreen({ navigation }) {
             <Text style={styles.avgValue}>{avg}%</Text>
             <Text style={styles.avgLabel}>Overall Score</Text>
           </View>
-          <TouchableOpacity style={styles.startBtn} onPress={() => navigation.navigate('Games')}>
+          <TouchableOpacity style={styles.startBtn} onPress={() => navigation.navigate('Main', { screen: 'Games' })}>
             <Text style={styles.startBtnText}>Start Playing Games</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.secondaryBtn2} onPress={() => navigation.navigate('Dashboard')}>
+          <TouchableOpacity style={styles.secondaryBtn2} onPress={() => navigation.navigate('Main', { screen: 'Dashboard' })}>
             <Text style={styles.secondaryBtn2Text}>View Dashboard</Text>
           </TouchableOpacity>
         </ScrollView>

@@ -2,6 +2,7 @@ node_modules/
 .expo/
 dist/
 *.jks
+*.keystore
 *.p8
 *.p12
 *.key
@@ -11,3 +12,5 @@ web-build/
 google-play-key.json
 .env
 .env.local
+.DS_Store
+.idea/

@@ -1,10 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, Alert,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert,  } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { clearAll, getString, KEYS } from '../storage';
-import { getProfile } from '../api/brainspark';
+import { getProfile, invalidateProfileCache, flushSyncQueue } from '../api/brainspark';
 import { DOMAINS } from '../constants';
 import RadarChart from '../components/RadarChart';
 import { colors, spacing, radius, shadow } from '../theme';
@@ -26,20 +25,23 @@ export default function DashboardScreen({ navigation }) {
     const ageGroup = (await getString(KEYS.AGE_GROUP)) || 'middle';
     setAgeLabel(ageGroup === 'young' ? '3-5 yrs' : ageGroup === 'middle' ? '6-8 yrs' : '9-12 yrs');
 
+    // Flush any queued sessions first, then always fetch fresh — Dashboard must never show stale data
+    await flushSyncQueue();
+    await invalidateProfileCache();
     const data = await getProfile();
     if (!data) return;
 
     const cp = data.cognitiveProfile || {};
     const p = {
-      memory: cp.memoryScore || 0,
-      attention: cp.attentionScore || 0,
-      pattern: cp.patternScore || 0,
-      spatial: cp.spatialScore || 0,
-      logic: cp.logicScore || 0,
+      memory: cp.memory || 0,
+      attention: cp.attention || 0,
+      pattern: cp.pattern || 0,
+      spatial: cp.spatial || 0,
+      logic: cp.logic || 0,
     };
     setProfile(p);
 
-    setStreak({ count: data.streakInfo?.currentStreak || 0, best: data.streakInfo?.bestStreak || 0 });
+    setStreak({ count: data.streak?.current || 0, best: data.streak?.best || 0 });
 
     const apiGs = data.gameStats || {};
     const stats = DOMAINS.map(d => {
@@ -47,10 +49,10 @@ export default function DashboardScreen({ navigation }) {
       return {
         ...d,
         stats: {
-          gamesPlayed: s.played || 0,
+          gamesPlayed: s.gamesPlayed || 0,
           wins: s.wins || 0,
           bestScore: s.bestScore || 0,
-          totalScore: s.sumScore || 0,
+          totalScore: s.totalScore || 0,
           lastPlayed: s.lastPlayed || null,
         },
       };
@@ -70,13 +72,14 @@ export default function DashboardScreen({ navigation }) {
   const handleReset = () => {
     Alert.alert(
       'Reset All Data',
-      'This will erase all game history and cognitive profiles. Cannot be undone.',
+      'This will erase all game history and progress. Cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Reset', style: 'destructive',
           onPress: async () => {
             await clearAll();
+            await invalidateProfileCache();
             loadData();
           },
         },
@@ -84,7 +87,7 @@ export default function DashboardScreen({ navigation }) {
     );
   };
 
-  const hasProfile = Object.keys(profile).length > 0;
+  const hasProfile = Object.values(profile).some(v => v > 0);
   const totalGames = gameStats.reduce((s, g) => s + (g.stats.gamesPlayed || 0), 0);
   const totalScore = gameStats.reduce((s, g) => s + (g.stats.totalScore || 0), 0);
   const avgScore = hasProfile
@@ -103,7 +106,7 @@ export default function DashboardScreen({ navigation }) {
         <View style={styles.header}>
           <View>
             <Text style={styles.title}>📊 Parent Dashboard</Text>
-            <Text style={styles.subtitle}>Track your child's cognitive development</Text>
+            <Text style={styles.subtitle}>See your child's play & progress</Text>
           </View>
           <View style={styles.headerBadges}>
             {ageLabel ? <View style={styles.ageBadge}><Text style={styles.ageBadgeText}>Age: {ageLabel}</Text></View> : null}
@@ -114,7 +117,7 @@ export default function DashboardScreen({ navigation }) {
         {/* Stats Grid */}
         <View style={styles.statsGrid}>
           {[
-            { value: `${avgScore}%`, label: 'Cognitive Score', color: colors.primary },
+            { value: `${avgScore}%`, label: 'Avg Accuracy', color: colors.primary },
             { value: totalGames, label: 'Games Played', color: colors.secondary },
             { value: totalScore, label: 'Total Points', color: colors.amber },
             { value: streak.best || 0, label: 'Best Streak', color: colors.green },
@@ -130,10 +133,10 @@ export default function DashboardScreen({ navigation }) {
         {!hasProfile && (
           <View style={styles.noProfile}>
             <Text style={styles.noProfileIcon}>🎯</Text>
-            <Text style={styles.noProfileTitle}>No assessment taken yet</Text>
-            <Text style={styles.noProfileDesc}>Take the brain assessment to see a detailed cognitive profile</Text>
+            <Text style={styles.noProfileTitle}>No warm-up yet</Text>
+            <Text style={styles.noProfileDesc}>Play the warm-up to personalize your child's games</Text>
             <TouchableOpacity style={styles.assessBtn} onPress={() => navigation.navigate('Assessment')}>
-              <Text style={styles.assessBtnText}>Take Assessment</Text>
+              <Text style={styles.assessBtnText}>Start Warm-Up</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -141,7 +144,7 @@ export default function DashboardScreen({ navigation }) {
         {/* Radar Chart */}
         {(hasProfile || totalGames > 0) && (
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Cognitive Profile</Text>
+            <Text style={styles.cardTitle}>Skills Explored</Text>
             <View style={styles.radarWrapper}>
               <RadarChart scores={radarScores} />
             </View>

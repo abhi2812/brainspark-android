@@ -1,33 +1,46 @@
-import React, { useState } from 'react';
-import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView,
-} from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { setString } from '../storage';
 import { registerDevice } from '../api/brainspark';
 import { AGE_GROUPS, DOMAINS } from '../constants';
 import { colors, spacing, radius, shadow } from '../theme';
 
 const FEATURES = [
-  { icon: '🧠', title: 'Cognitive Assessment', desc: '5-minute test mapping 5 cognitive domains', color: colors.primary, status: 'live' },
-  { icon: '🎮', title: '5 Brain Games', desc: 'Memory, attention, patterns, spatial & logic', color: colors.secondary, status: 'live' },
-  { icon: '📈', title: 'Adaptive Difficulty', desc: 'AI adjusts based on age and performance', color: colors.green, status: 'beta' },
-  { icon: '👨‍👩‍👧', title: 'Parent Dashboard', desc: 'Track progress with radar chart & history', color: colors.amber, status: 'live' },
+  { icon: '🎯', title: 'Warm-Up Challenge', desc: 'Quick mini-games to personalize your child’s start', color: colors.primary, status: 'live', screen: 'Assessment' },
+  { icon: '🎮', title: '5 Brain Games', desc: 'Memory, attention, patterns, spatial & logic', color: colors.secondary, status: 'live', screen: 'Games' },
+  { icon: '📈', title: 'Adaptive Difficulty', desc: 'Adjusts to your child’s age and pace', color: colors.green, status: 'beta', screen: 'Games' },
+  { icon: '👨‍👩‍👧', title: 'Parent Dashboard', desc: 'Track progress with radar chart & history', color: colors.amber, status: 'live', screen: 'Dashboard' },
   { icon: '🌐', title: 'Regional Languages', desc: 'Hindi, Kannada, Tamil, Telugu coming soon', color: colors.pink, status: 'coming' },
   { icon: '🤖', title: 'AI Voice Tutor', desc: 'Voice-first companion for kids (coming soon)', color: '#06B6D4', status: 'coming' },
 ];
 
 export default function HomeScreen({ navigation }) {
   const [selectedAge, setSelectedAge] = useState(null);
+  const scrollRef = useRef(null);
+  const ageShake = useRef(new Animated.Value(0)).current;
+  const ageSectionY = useRef(0);
+
+  const promptAgeSelection = () => {
+    scrollRef.current?.scrollTo({ y: ageSectionY.current - 20, animated: true });
+    Animated.sequence([
+      Animated.timing(ageShake, { toValue: 8, duration: 60, useNativeDriver: true }),
+      Animated.timing(ageShake, { toValue: -8, duration: 60, useNativeDriver: true }),
+      Animated.timing(ageShake, { toValue: 8, duration: 60, useNativeDriver: true }),
+      Animated.timing(ageShake, { toValue: -8, duration: 60, useNativeDriver: true }),
+      Animated.timing(ageShake, { toValue: 0, duration: 60, useNativeDriver: true }),
+    ]).start();
+  };
 
   const handleStart = async () => {
-    if (!selectedAge) return;
+    if (!selectedAge) { promptAgeSelection(); return; }
     await setString('bs_age_group', selectedAge);
-    registerDevice(selectedAge); // fire-and-forget; queued if offline
+    registerDevice(selectedAge);
     navigation.navigate('Assessment');
   };
 
   const handleSkipToGames = async () => {
-    if (!selectedAge) return;
+    if (!selectedAge) { promptAgeSelection(); return; }
     await setString('bs_age_group', selectedAge);
     registerDevice(selectedAge);
     navigation.navigate('Games');
@@ -35,23 +48,23 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView ref={scrollRef} contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         {/* Hero */}
         <View style={styles.hero}>
           <Text style={styles.heroIcon}>🧠</Text>
-          <Text style={styles.heroTitle}>Build Smarter Brains{'\n'}
-            <Text style={styles.gradient}>Through Play</Text>
+          <Text style={styles.heroTitle}>Fun Brain Games{'\n'}
+            <Text style={styles.gradient}>Kids Love</Text>
           </Text>
           <Text style={styles.heroSub}>
-            Free AI-powered cognitive games that adapt to your child's level.
-            10 minutes a day to sharpen memory, attention, logic and more.
+            Free, ad-free games that adapt to your child's level.
+            A few minutes of playful practice with memory, attention, patterns and logic.
           </Text>
         </View>
 
         {/* Age Selection */}
-        <View style={styles.section}>
+        <View style={styles.section} onLayout={e => { ageSectionY.current = e.nativeEvent.layout.y; }}>
           <Text style={styles.sectionTitle}>How old is your child?</Text>
-          <View style={styles.ageGrid}>
+          <Animated.View style={[styles.ageGrid, { transform: [{ translateX: ageShake }] }]}>
             {AGE_GROUPS.map(age => (
               <TouchableOpacity
                 key={age.id}
@@ -65,19 +78,17 @@ export default function HomeScreen({ navigation }) {
                 <Text style={styles.ageDesc}>{age.desc}</Text>
               </TouchableOpacity>
             ))}
-          </View>
+          </Animated.View>
 
           <TouchableOpacity
             style={[styles.primaryBtn, !selectedAge && styles.btnDisabled]}
             onPress={handleStart}
-            disabled={!selectedAge}
           >
-            <Text style={styles.primaryBtnText}>Start Brain Assessment</Text>
+            <Text style={styles.primaryBtnText}>Start Warm-Up</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.secondaryBtn, !selectedAge && styles.btnDisabled]}
             onPress={handleSkipToGames}
-            disabled={!selectedAge}
           >
             <Text style={styles.secondaryBtnText}>Skip to Games</Text>
           </TouchableOpacity>
@@ -85,7 +96,7 @@ export default function HomeScreen({ navigation }) {
 
         {/* 5 Domains */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>5 Cognitive Domains</Text>
+          <Text style={styles.sectionTitle}>5 Skill Areas</Text>
           <View style={styles.domainsRow}>
             {DOMAINS.map(d => (
               <View key={d.key} style={styles.domainChip}>
@@ -98,21 +109,29 @@ export default function HomeScreen({ navigation }) {
 
         {/* Features */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Why BrainSpark?</Text>
+          <Text style={styles.sectionTitle}>Why Timmble?</Text>
           <View style={styles.featuresGrid}>
-            {FEATURES.map(f => (
-              <View key={f.title} style={[styles.featureCard, f.status === 'coming' && styles.featureCardDim]}>
-                {f.status === 'coming' && (
-                  <View style={styles.badge}><Text style={styles.badgeText}>COMING SOON</Text></View>
-                )}
-                {f.status === 'beta' && (
-                  <View style={[styles.badge, styles.badgeBeta]}><Text style={[styles.badgeText, styles.badgeBetaText]}>BETA</Text></View>
-                )}
-                <Text style={styles.featureIcon}>{f.icon}</Text>
-                <Text style={styles.featureTitle}>{f.title}</Text>
-                <Text style={styles.featureDesc}>{f.desc}</Text>
-              </View>
-            ))}
+            {FEATURES.map(f => {
+              const isComingSoon = f.status === 'coming';
+              const Card = isComingSoon ? View : TouchableOpacity;
+              return (
+                <Card
+                  key={f.title}
+                  style={[styles.featureCard, isComingSoon && styles.featureCardDim]}
+                  {...(!isComingSoon && { onPress: () => navigation.navigate(f.screen), activeOpacity: 0.75 })}
+                >
+                  {isComingSoon && (
+                    <View style={styles.badge}><Text style={styles.badgeText}>COMING SOON</Text></View>
+                  )}
+                  {f.status === 'beta' && (
+                    <View style={[styles.badge, styles.badgeBeta]}><Text style={[styles.badgeText, styles.badgeBetaText]}>BETA</Text></View>
+                  )}
+                  <Text style={styles.featureIcon}>{f.icon}</Text>
+                  <Text style={styles.featureTitle}>{f.title}</Text>
+                  <Text style={styles.featureDesc}>{f.desc}</Text>
+                </Card>
+              );
+            })}
           </View>
         </View>
 
@@ -120,9 +139,9 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>How It Works</Text>
           {[
-            { step: '1', icon: '🎯', title: 'Take Assessment', desc: '5-minute cognitive profile quiz' },
-            { step: '2', icon: '🎮', title: 'Play Daily Games', desc: '10 min/day, AI-adapted to your level' },
-            { step: '3', icon: '📈', title: 'Track Growth', desc: 'Watch cognitive scores improve weekly' },
+            { step: '1', icon: '🎯', title: 'Warm Up', desc: 'Quick mini-games to get started' },
+            { step: '2', icon: '🎮', title: 'Play Daily Games', desc: 'A few minutes a day, adapted to your level' },
+            { step: '3', icon: '📈', title: 'See Progress', desc: 'Track play, streaks and favorite games' },
           ].map(s => (
             <View key={s.step} style={styles.step}>
               <View style={styles.stepNumber}><Text style={styles.stepNumText}>{s.step}</Text></View>
@@ -137,8 +156,8 @@ export default function HomeScreen({ navigation }) {
 
         {/* CTA Banner */}
         <View style={styles.ctaBanner}>
-          <Text style={styles.ctaTitle}>Ready to spark your child's brain?</Text>
-          <Text style={styles.ctaSub}>100% free. No ads. No data selling. Just better brains.</Text>
+          <Text style={styles.ctaTitle}>Ready for some playful learning?</Text>
+          <Text style={styles.ctaSub}>100% free. No ads. No data selling.</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
