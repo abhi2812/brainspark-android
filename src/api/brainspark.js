@@ -98,7 +98,9 @@ export function invalidateProfileCache() {
 
 export async function saveSession(session) {
   const deviceId = await getDeviceId();
-  const payload = { deviceId, ...session };
+  // sessionId generated once here so an offline retry resends the SAME id,
+  // letting the backend dedupe (ON CONFLICT) instead of double-counting.
+  const payload = { deviceId, sessionId: generateUUID(), ...session };
   try {
     await apiPost('/session', payload);
     await invalidateProfileCache();

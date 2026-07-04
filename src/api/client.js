@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const BASE_URL = 'https://d2wq4bog7awi65.cloudfront.net/api/brainspark';
+export const BASE_URL = 'https://api.timmble.com/api/timmble';
 
 const TIMEOUT_MS = 8000;
 
