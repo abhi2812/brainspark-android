@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert,  } from 'r
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { clearAll, getString, KEYS } from '../storage';
-import { getProfile, invalidateProfileCache, flushSyncQueue } from '../api/brainspark';
+import { getProfile, invalidateProfileCache, flushSyncQueue } from '../api/timmble';
 import { DOMAINS } from '../constants';
 import RadarChart from '../components/RadarChart';
 import { colors, spacing, radius, shadow } from '../theme';

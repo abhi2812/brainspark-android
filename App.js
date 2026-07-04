@@ -8,7 +8,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Text, AppState, Modal, View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { flushSyncQueue } from './src/api/brainspark';
+import { flushSyncQueue } from './src/api/timmble';
 import { getString } from './src/storage';
 
 import HomeScreen from './src/screens/HomeScreen';

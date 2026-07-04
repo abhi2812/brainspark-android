@@ -1,7 +1,7 @@
-# BrainSpark — UX Review Brief
+# Timmble — UX Review Brief
 
 ## What It Is
-BrainSpark is a mobile app (Android) for parents of children aged 3–12. The parent sets up the app, selects the child's age group, and the child plays cognitive training games. A Parent Dashboard shows progress over time. The app is currently free, no login required.
+Timmble is a mobile app (Android) for parents of children aged 3–12. The parent sets up the app, selects the child's age group, and the child plays cognitive training games. A Parent Dashboard shows progress over time. The app is currently free, no login required.
 
 ---
 
@@ -42,7 +42,7 @@ Plus 2 stack screens pushed on top:
    - Primary: "Start Brain Assessment" → goes to Assessment screen
    - Secondary: "Skip to Games" → goes to Games tab
 4. **5 Cognitive Domains** — horizontal chip row: 🧩 Memory · 👁️ Attention · 🔍 Patterns · 🗺️ Spatial · ⚙️ Logic
-5. **Why BrainSpark?** — 6 feature cards (2-column grid):
+5. **Why Timmble?** — 6 feature cards (2-column grid):
    - 🧠 Cognitive Assessment (tappable → Assessment)
    - 🎮 5 Brain Games (tappable → Games)
    - 📈 Adaptive Difficulty (tappable → Games)

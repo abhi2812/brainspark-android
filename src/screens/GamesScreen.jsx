@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet,  } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
-import { getProfile } from '../api/brainspark';
+import { getProfile } from '../api/timmble';
 import { GAMES } from '../constants';
 import { colors, spacing, radius, shadow } from '../theme';
 

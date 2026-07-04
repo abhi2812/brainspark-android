@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { setString } from '../storage';
-import { registerDevice } from '../api/brainspark';
+import { registerDevice } from '../api/timmble';
 import { AGE_GROUPS, DOMAINS } from '../constants';
 import { colors, spacing, radius, shadow } from '../theme';
 

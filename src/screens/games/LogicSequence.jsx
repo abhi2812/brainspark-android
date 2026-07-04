@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getItem, setItem, KEYS } from '../../storage';
-import { saveSession } from '../../api/brainspark';
+import { saveSession } from '../../api/timmble';
 import GameHeader from '../../components/GameHeader';
 import ResultScreen from '../../components/ResultScreen';
 import { GAMES } from '../../constants';
