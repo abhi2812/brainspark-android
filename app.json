@@ -16,7 +16,7 @@
       "supportsTablet": false
     },
     "android": {
-      "package": "com.safestop.brainspark",
+      "package": "com.safestop.timmble",
       "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
