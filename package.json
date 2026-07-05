@@ -28,17 +28,26 @@
   },
   "private": true,
   "devDependencies": {
+    "@testing-library/react-native": "^13.2.0",
     "babel-preset-expo": "~54.0.10",
     "jest": "^30.3.0",
-    "jest-expo": "^55.0.16"
+    "jest-expo": "^54.0.17",
+    "react-test-renderer": "^19.1.0"
   },
   "jest": {
-    "testEnvironment": "node",
+    "preset": "react-native",
+    "setupFilesAfterEnv": [
+      "<rootDir>/jest.setup.js"
+    ],
     "testMatch": [
-      "**/__tests__/**/*.test.js"
+      "**/__tests__/**/*.test.js",
+      "**/__tests__/**/*.test.jsx"
     ],
     "transformIgnorePatterns": [
-      "node_modules"
-    ]
+      "node_modules/(?!(?:jest-)?react-native|@react-native|@react-navigation|react-native-svg|react-native-safe-area-context|react-native-gesture-handler)"
+    ],
+    "transform": {
+      "^.+\\.(js|jsx|ts|tsx)$": "babel-jest"
+    }
   }
 }

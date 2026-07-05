@@ -21,6 +21,7 @@ import PatternPuzzle from './src/screens/games/PatternPuzzle';
 import SpatialReasoning from './src/screens/games/SpatialReasoning';
 import LogicSequence from './src/screens/games/LogicSequence';
 import { colors, spacing, radius } from './src/theme';
+import { Icon } from './src/components/Icons';
 
 const GAME_SCREENS = {
   memory: MemoryMatch,
@@ -57,7 +58,7 @@ function ParentalGate({ visible, onSuccess, onCancel }) {
     <Modal visible={visible} transparent animationType="fade">
       <View style={gate.overlay}>
         <View style={gate.card}>
-          <Text style={gate.lock}>🔒</Text>
+          <View style={gate.lockWrap}><Icon name="lock" color={colors.coral} size={34} /></View>
           <Text style={gate.title}>Parent Check</Text>
           <Text style={gate.subtitle}>Solve this to open the Dashboard</Text>
           <Text style={gate.question}>{question} = ?</Text>
@@ -117,7 +118,7 @@ function MainTabs({ initialTab }) {
           component={HomeScreen}
           options={{
             tabBarLabel: 'Home',
-            tabBarIcon: () => <Text style={{ fontSize: 20 }}>🏠</Text>,
+            tabBarIcon: ({ color }) => <Icon name="home" color={color} size={24} />,
           }}
         />
         <Tab.Screen
@@ -125,7 +126,7 @@ function MainTabs({ initialTab }) {
           component={GamesScreen}
           options={{
             tabBarLabel: 'Games',
-            tabBarIcon: () => <Text style={{ fontSize: 20 }}>🎮</Text>,
+            tabBarIcon: ({ color }) => <Icon name="games" color={color} size={24} />,
           }}
         />
         <Tab.Screen
@@ -133,7 +134,7 @@ function MainTabs({ initialTab }) {
           component={DashboardScreen}
           options={{
             tabBarLabel: 'Dashboard',
-            tabBarIcon: () => <Text style={{ fontSize: 20 }}>📊</Text>,
+            tabBarIcon: ({ color }) => <Icon name="chart" color={color} size={24} />,
           }}
           listeners={({ navigation }) => ({
             tabPress: (e) => {
@@ -199,7 +200,7 @@ export default function App() {
 const gate = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' },
   card: { backgroundColor: '#fff', borderRadius: radius.xxl, padding: spacing.xl, width: '85%', alignItems: 'center' },
-  lock: { fontSize: 40, marginBottom: 8 },
+  lockWrap: { width: 64, height: 64, borderRadius: 999, backgroundColor: colors.coralSoft, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
   title: { fontSize: 22, fontWeight: '900', color: colors.text, marginBottom: 4 },
   subtitle: { fontSize: 14, color: colors.textMuted, marginBottom: spacing.lg, textAlign: 'center' },
   question: { fontSize: 36, fontWeight: '900', color: colors.primary, marginBottom: spacing.md },
